@@ -1,28 +1,45 @@
-import { AxiosResponse } from "axios";
-import { Attributes } from "./Attributes";
-import { Eventing } from "./Eventing";
-import { Sync } from "./Sync";
+// Composition and Interface style approach (Model has a Attributes, Eventing, and Sync etc.)
 
-export interface ModelProps {
-  id?: number;
-  name?: string;
-  age?: number;
-}
-
-const rootUrl = "http://localhost:3000/users";
+import { AxiosPromise, AxiosResponse } from "axios";
 
 /**
- * Composition style class
- * - Model has a Attributes, Eventing, and Sync
+ * Gives us the ability to tell other parts of our app when something has changed
  */
-export class Model {
-  private events: Eventing = new Eventing();
-  private sync: Sync<ModelProps> = new Sync<ModelProps>(rootUrl);
-  private attributes: Attributes<ModelProps>;
+interface Events {
+  on(eventName: string, callback: () => void): void;
+  trigger(eventName: string): void;
+}
 
-  constructor(attrs: ModelProps) {
-    this.attributes = new Attributes<ModelProps>(attrs);
-  }
+/**
+ * Gives us the ability to save and fetch data from a server
+ */
+interface Sync<T> {
+  fetch(id: number): AxiosPromise;
+  save(data: T): AxiosPromise;
+}
+
+/**
+ * Gives us the ability to store and retrieve data from an object
+ */
+interface ModelAttributes<T> {
+  get<K extends keyof T>(key: K): T[K];
+  set(update: T): void;
+  getAll(): T;
+}
+
+interface HasId {
+  id?: number;
+}
+
+/**
+ * Model is a class that represents a model
+ */
+export class Model<T extends HasId> {
+  constructor(
+    private attributes: ModelAttributes<T>,
+    private events: Events,
+    private sync: Sync<T>
+  ) {}
 
   get on() {
     return this.events.on;
@@ -36,11 +53,21 @@ export class Model {
     return this.attributes.get;
   }
 
-  set(update: ModelProps): void {
+  /**
+   * Sets the value of the key
+   * - triggers change event if successful
+   * @param update - T is constrained to be an object
+   */
+  set(update: T): void {
     this.attributes.set(update);
     this.events.trigger("change");
   }
 
+  /**
+   * Fetches data from the server
+   * @returns void
+   * @throws Error - if there is no id
+   */
   fetch(): void {
     const id = this.get("id");
     if (typeof id !== "number") {
@@ -51,6 +78,12 @@ export class Model {
     });
   }
 
+  /**
+   * Saves data to the server
+   * - triggers save event if successful
+   * - triggers error event if unsuccessful
+   * @returns void
+   */
   save(): void {
     const data = this.attributes.getAll();
     this.sync
