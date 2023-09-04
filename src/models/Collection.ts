@@ -3,6 +3,7 @@ import { Eventing } from "./Eventing";
 
 /**
  * Collection is a class that represents a collection of models
+ * - T is the type of model that we are going to have in this collection
  */
 export class Collection<T, U> {
   models: T[] = [];
