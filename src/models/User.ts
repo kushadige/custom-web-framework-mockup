@@ -31,6 +31,14 @@ export class User extends Model<UserProps> {
     );
   }
 
+  // static buildLocalUser(attrs: UserProps): User {
+  //   return new User(
+  //     new Attributes<UserProps>(attrs),
+  //     new Eventing(),
+  //     new LocalSync<UserProps>()
+  //   );
+  // }
+
   get fullName(): string {
     return "User full name";
   }
