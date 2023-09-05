@@ -22,6 +22,9 @@ const rootUrl = "http://localhost:3000/users";
 
 /**
  * User is a class that represents a user
+ * - inherits all methods from `Model`
+ * - defines a static method that returns a `UserCollection`
+ * - defines a method that sets a random age
  */
 export class User extends Model<UserProps> {
   constructor(attrs: UserProps) {
@@ -46,6 +49,11 @@ export class User extends Model<UserProps> {
   //     new LocalSync<UserProps>()
   //   );
   // }
+
+  setRandomAge(): void {
+    const age = Math.round(Math.random() * 100);
+    this.set({ age });
+  }
 
   get fullName(): string {
     return "User full name";

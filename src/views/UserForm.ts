@@ -1,49 +1,58 @@
-export class UserForm {
-  constructor(public parent: Element) {}
+import { User, UserProps } from "../models/User";
+import { View } from "./View";
 
-  eventsMap(): { [key: string]: () => void } {
-    return {
-      "click:button": this.onButtonClick,
-      "mouseenter:h1": this.onHoverH1,
-      // "drag:div": this.onDragDiv
-    };
-  }
-
-  onHoverH1(): void {
-    console.log("H1 was hovered over");
-  }
-
-  onButtonClick(): void {
-    console.log("Hi there");
-  }
-
+/**
+ * UserForm is a class that represents a user form
+ * - renders a user form
+ * - handles user form events
+ * - saves user form data
+ */
+export class UserForm extends View<User, UserProps> {
   template(): string {
     return `
       <div>
-        <h1>User Form</h1>
-        <input />
-        <button>Click Me</button>
+        <input 
+          id="name"
+          placeholder="${this.model.get("name")}" 
+          autocomplete="off" 
+        />
+        <button class="update-name">Update Name</button>
+        <button class="set-age">Set Random Age</button>
+        <button class="save-user">Save User</button>
       </div>
     `;
   }
 
-  bindEvents(fragment: DocumentFragment): void {
-    const eventsMap = this.eventsMap();
+  override eventsMap(): { [key: string]: () => void } {
+    return {
+      "click:button.set-age": this.onSetAgeClick,
+      "click:button.update-name": this.onUpdateNameClick,
+      "click:button.save-user": this.onSaveUserClick,
+    };
+  }
 
-    for (let eventKey in eventsMap) {
-      const [eventName, selector] = eventKey.split(":");
+  /**
+   * Sets a random age
+   */
+  onSetAgeClick = (): void => {
+    this.model.setRandomAge();
+  };
 
-      fragment.querySelectorAll(selector).forEach((element) => {
-        element.addEventListener(eventName, eventsMap[eventKey]);
-      });
+  /**
+   * Updates the user name
+   */
+  onUpdateNameClick = (): void => {
+    const input = this.parent.querySelector("input") as HTMLInputElement;
+    if (input && input.value) {
+      const name = input.value;
+      this.model.set({ name });
     }
-  }
+  };
 
-  render(): void {
-    const templateElement = document.createElement("template");
-    templateElement.innerHTML = this.template();
-
-    this.bindEvents(templateElement.content);
-    this.parent.append(templateElement.content);
-  }
+  /**
+   * Saves the user data to the server
+   */
+  onSaveUserClick = (): void => {
+    this.model.save();
+  };
 }

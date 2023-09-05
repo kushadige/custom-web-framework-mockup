@@ -27,12 +27,13 @@ interface ModelAttributes<T> {
   getAll(): T;
 }
 
-interface HasId {
+export interface HasId {
   id?: number;
 }
 
 /**
  * Model is a class that represents a model
+ * - `T` is constrained to be an object with an `id` property
  */
 export class Model<T extends HasId> {
   constructor(
